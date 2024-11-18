@@ -17,6 +17,7 @@
 - fs-extra
 
 ## Структура проекта
+```
 project/
 ├── src/
 │ ├── config.js # Конфигурация приложения
@@ -32,11 +33,12 @@ project/
 ├── jest.config.js # Конфигурация Jest
 ├── jest.setup.js # Настройки тестового окружения
 └── package.json
+```
 
 ## Установка
 1. Клонируйте репозиторий:
 ```bash
-git  clone git@github.com:CyberPanCake3000/MeetAI-Test.git
+git clone git@github.com:CyberPanCake3000/MeetAI-Test.git
 cd MeetAI-Test
 ```
 2. Установите зависимости:
