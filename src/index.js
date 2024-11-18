@@ -1,77 +1,50 @@
-import puppeteer from 'puppeteer';
-import fs from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { CONFIG } from './config.js';
+import { Logger } from './utils/logger.js';
+import { FileManager } from './utils/file-manager.js';
+import { Scraper } from './services/scraper.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+async function main() {
+  const fileManager = new FileManager(
+    CONFIG.outputDirs.mainDir,
+    CONFIG.outputDirs.text,
+    CONFIG.outputDirs.images);
+  const scraper = new Scraper(CONFIG);
 
-async function scrapeWebsite() {
   try {
-    const textDir = path.join(__dirname, 'text');
-    const imagesDir = path.join(__dirname, 'images');
+    await fileManager.initializeDirs();
+    await scraper.initialize();
 
-    await fs.ensureDir(textDir);
-    await fs.ensureDir(imagesDir);
+    Logger.info(`Открываем страницу ${CONFIG.url}`);
+    await scraper.page.goto(CONFIG.url, { waitUntil: 'networkidle0' });
 
-    const browser = await puppeteer.launch({
-      headless: 'new'
-    });
+    Logger.info('Собираем текст');
+    const textContent = await scraper.scrapeText();
+    await fileManager.saveText(textContent);
 
-    const page = await browser.newPage();
+    Logger.info('Собираем изображения');
+    const images = await scraper.scrapeImages();
 
-    await page.setViewport({ width: 1920, height: 1080 });
-
-    console.log('Открываем страницу...');
-    await page.goto('https://mymeet.ai', {
-      waitUntil: 'networkidle0'
-    });
-
-    console.log('Собираем текст...');
-    const textContent = await page.evaluate(() => {
-      const textNodes = document.evaluate(
-        '//text()[normalize-space(.)!=""]',
-        document,
-        null,
-        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        null
-      );
-
-      let text = '';
-      for (let i = 0; i < textNodes.snapshotLength; i++) {
-        text += textNodes.snapshotItem(i).textContent.trim() + '\n';
-      }
-      return text;
-    });
-
-    await fs.writeFile(path.join(textDir, 'content.txt'), textContent);
-
-    console.log('Собираем изображения...');
-    const images = await page.evaluate(() => {
-      return Array.from(document.images, img => ({
-        src: img.src,
-        alt: img.alt
-      }));
-    });
-
-    console.log('Скачиваем изображения...');
+    Logger.info(`Начинаем скачивание ${images.length} изображений`);
     for (let i = 0; i < images.length; i++) {
       const img = images[i];
       try {
-        const response = await page.goto(img.src);
-        const buffer = await response.buffer();
+        const buffer = await scraper.downloadImage(img.src);
         const filename = `image_${i}_${img.alt.replace(/[^a-z0-9]/gi, '_')}.png`;
-        await fs.writeFile(path.join(imagesDir, filename), buffer);
+        await fileManager.saveImage(buffer, filename);
+        Logger.info(`Сохранено изображение ${i + 1}/${images.length}`);
       } catch (error) {
-        console.error(`Ошибка при скачивании изображения ${img.src}:`, error);
+        Logger.error(`Ошибка при скачивании изображения ${img.src}`, error);
       }
     }
 
-    await browser.close();
-    console.log('Скраппинг завершен успешно!');
+    const stats = fileManager.getStats();
+    Logger.success(`Скраппинг завершен успешно! Сохранено ${stats.textFiles} текстовых файлов и ${stats.imageFiles} изображений`);
 
   } catch (error) {
-    console.error('Произошла ошибка:', error);
+    Logger.error('Произошла ошибка при выполнении скраппинга', error);
+  } finally {
+    await scraper.close();
   }
 }
 
-scrapeWebsite();
+main();
