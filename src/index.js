@@ -1,7 +1,7 @@
-import { CONFIG } from './config.js';
-import { Logger } from './utils/logger.js';
-import { FileManager } from './utils/file-manager.js';
-import { Scraper } from './services/scraper.js';
+const { CONFIG } = require('./config');
+const { FileManager } = require('./utils/file-manager');
+const { Scraper } = require('./services/scraper/scraper');
+const { Logger } = require('./utils/logger');
 
 async function main() {
   const fileManager = new FileManager(

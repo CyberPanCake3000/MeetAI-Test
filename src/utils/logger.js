@@ -1,4 +1,4 @@
-export class Logger {
+class Logger {
   static info(message) {
     console.log(`[${new Date().toISOString()}] INFO: ${message}`);
   }
@@ -11,3 +11,5 @@ export class Logger {
     console.log(`[${new Date().toISOString()}] SUCCESS: ${message}`);
   }
 }
+
+module.exports = { Logger };

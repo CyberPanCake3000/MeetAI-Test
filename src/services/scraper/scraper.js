@@ -1,6 +1,6 @@
-import puppeteer from 'puppeteer';
+const puppeteer = require('puppeteer');
 
-export class Scraper {
+class Scraper {
   constructor(config) {
     this.config = config;
     this.browser = null;
@@ -51,3 +51,5 @@ export class Scraper {
     }
   }
 }
+
+module.exports = { Scraper };

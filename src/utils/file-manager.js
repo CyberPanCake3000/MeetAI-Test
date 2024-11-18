@@ -1,10 +1,7 @@
-import fs from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const fs = require('fs-extra');
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-export class FileManager {
+class FileManager {
   constructor(mainDir, textDir, imagesDir) {
     if (!mainDir || !textDir || !imagesDir) {
       throw new Error('Main directory, text and images directories must be specified');
@@ -38,3 +35,5 @@ export class FileManager {
     };
   }
 }
+
+module.exports = { FileManager };

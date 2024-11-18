@@ -1,7 +1,6 @@
-import dotenv from 'dotenv';
+require('dotenv').config();
 
-dotenv.config();
-export const CONFIG = {
+const CONFIG = {
   url: process.env.TARGET_WEBSITE_URL,
   viewport: {
     width: 1920,
@@ -17,3 +16,5 @@ export const CONFIG = {
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   }
 };
+
+module.exports = { CONFIG };
